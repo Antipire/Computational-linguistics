@@ -1,2 +1,6 @@
-# Computational-linguistics-
-Laboratory works
+# Computational-linguistics
+Семестровая работа студентов:
+
+Игорь Полухин ИВТ-360
+Валерий Зыбин ИВТ-360
+Власова Юлия ИВТ-363
