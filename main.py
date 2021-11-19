@@ -1,17 +1,21 @@
 from bs4 import BeautifulSoup
 import requests as req
 import time
+from queue import Queue
 from threading import Thread, Event, current_thread
 
 
-def crawler(wait_time: int, event: Event, links: list):
+def crawler(wait_time: int, event_crawler: Event, event_listener: Event, links: Queue):
     while True:
         resp = req.get(f"https://v102.ru/center_line_dorabotka_ajax.php?page=0&category=0")
         soup = BeautifulSoup(resp.text, 'lxml')
+        page_links = []
         for a in soup.find_all("a", class_="detail-link-text", href=True):
-            links.append(a['href'])
-
-        event.wait(wait_time)
+            page_links.append(a['href'])
+        links.put(page_links)
+        event_listener.set()
+        print(links.get())
+        event_crawler.wait(wait_time)
 
 
 # TODO: add code
@@ -27,12 +31,12 @@ def parse_news_data():
 
 
 # Checking if length of links array was changed
-def array_listener(links: list, difference: list, event: Event):
+def array_listener(links: Queue, difference: list, event: Event):
     while True:
-        stored_array_len = len(links)
-        event.wait(5)
-        if len(links) != stored_array_len:
-            difference[0] = len(links) - stored_array_len
+        if event.is_set():
+            print("\nCan read Queue")
+            event.clear()
+        event.wait()
 
 
 def main():
@@ -47,11 +51,12 @@ def main():
             print(f"{e}\nTry again")
         user_wait_time = input("Enter wait time in seconds: ")\
 
-    links = []
+    links = Queue()
     difference = [0]
-    event = Event()
-    th_crawler = Thread(target=crawler, args=(user_wait_time, event, links,))
-    th_arr_listener = Thread(target=array_listener, args=(links, difference, event,))
+    event_crawler = Event()
+    event_listener = Event()
+    th_crawler = Thread(target=crawler, args=(user_wait_time, event_crawler, event_listener, links,))
+    th_arr_listener = Thread(target=array_listener, args=(links, difference, event_listener,))
 
     while True:
         th_crawler.start()
