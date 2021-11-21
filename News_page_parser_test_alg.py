@@ -16,14 +16,13 @@ date = soup.find("span", class_="date-new")
 print(date.text)
 
 # Get news text
-# Current issue: Cant print value of news_text
-#                when replacing \n. Idk why...
+# Pycharm can't print news_text
 news = soup.find_all("div", class_="n-text")
 news_text = ""
 for item in news:
     news_text += str(item.text)
 news_text = news_text.replace('\n', ' ').replace(u'\xa0', "")
-print(len(news_text))
+print(news_text)
 
 # Get comments number
 comments = soup.find("span", class_="attr-comment")
